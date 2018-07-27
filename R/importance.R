@@ -1,41 +1,19 @@
-#' importance
+#' Extract variable importance measure
+#' @param x, an object of class \code{\link{rfCountData}}.
+#' @return A vector of importance measure, one item for each predictor variable.
+#' @details The measure is computed from permuting OOB data: For each tree, the prediction error 
+#' on the out-of-bag portion of the data is recorded (deviance). 
+#' Then the same is done after permuting each predictor variable. 
+#' The difference between the two are then averaged over all trees. 
+#' @seealso \link{rfPoisson}, \link{varImpPlot}.
 #' @export
-importance <- function(x, type=1, class=NULL, scale=TRUE,
-                                    ...) {
+importance <- function(x) {
     if (!inherits(x, "rfCountData"))
         stop("x is not of class rfCountData")
-    classRF <- x$type != "regression"
-    hasImp <- !is.null(dim(x$importance)) || ncol(x$importance) == 1
-    hasType <- !is.null(type)
-    if (hasType && type == 1 && !hasImp)
+    hasImp <- !is.null(dim(x$importance)) || ncol(x$importance) == 2
+    if (!hasImp)
         stop("That measure has not been computed")
-    allImp <- is.null(type) && hasImp
-    if (hasType) {
-        if (!(type %in% 1:2)) stop("Wrong type specified")
-        if (type == 2 && !is.null(class))
-            stop("No class-specific measure for that type")
-    }
-    
     imp <- x$importance
-    if (hasType && type == 2) {
-        if (hasImp) imp <- imp[, ncol(imp), drop=FALSE]
-    } else {
-        if (scale) {
-            SD <- x$importanceSD
-            imp[, -ncol(imp)] <-
-                imp[, -ncol(imp), drop=FALSE] /
-                    ifelse(SD < .Machine$double.eps, 1, SD)
-        }
-        if (!allImp) {
-            if (is.null(class)) {
-                ## The average decrease in accuracy measure:
-                imp <- imp[, ncol(imp) - 1, drop=FALSE]
-            } else {
-                whichCol <- if (classRF) match(class, colnames(imp)) else 1
-                if (is.na(whichCol)) stop(paste("Class", class, "not found."))
-                imp <- imp[, whichCol, drop=FALSE]
-            }
-        }
-    }
+    imp <- imp[, 1, drop=FALSE]
     imp
 }

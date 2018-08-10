@@ -25,7 +25,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
 #' @param maxnodes Maximum number of terminal nodes trees in the forest can have.  
 #' If not given, trees are grown to the maximum possible 
 #' (subject to limits by \code{nodesize}).  If set larger than maximum possible, a warning is issued.
-#' @param importance Not yet implemented. Should importance of predictors be assessed? 
+#' @param importance Should importance of predictors be assessed? Default is \code{TRUE}.
 #' @param localImp Not yet implemented. Should casewise importance measure be computed? (Setting this to \code{TRUE} will override \code{importance}.) 
 #' @param nPerm Not yet implemented. Number of times the OOB data are permuted per tree for 
 #' assessing variable importance.  Number larger than 1 gives slightly more stable estimate, 
@@ -67,7 +67,7 @@ rfPoisson <-
              sampsize = if (replace) nrow(x) else ceiling(.632*nrow(x)),
              nodesize = 5000,
              maxnodes=NULL,
-             importance=FALSE, localImp=FALSE, nPerm=1,
+             importance=TRUE, localImp=FALSE, nPerm=1,
              proximity=FALSE, oob.prox=proximity,
              norm.votes=TRUE, do.trace=FALSE,
              keep.forest=!is.null(y) && is.null(xtest), corr.bias=FALSE,

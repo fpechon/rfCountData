@@ -1,5 +1,18 @@
 #' varImpPlot
-#' 
+#' @description Dotchart of variable importance as measured by a Random Forest
+#' @usage varImpPlot(x, sort=TRUE, n.var=min(30, nrow(x$importance)),
+#' type=NULL, class=NULL, scale=TRUE, 
+#' main=deparse(substitute(x)), ...) 
+#' @param x, An object of class \code{rfPoisson}.
+#' @param sort, Should the variables be sorted in decreasing order of importance?
+#' @param n.var, How many variables to show? (Ignored if \code{sort=FALSE}).
+#' @param type,  argument to be passed on to \code{\link{importance}}
+#' @param class, argument to be passed on to \code{\link{importance}}
+#' @param scale, argument to be passed on to \code{\link{importance}}
+#' @param main, plot title,
+#' @param ..., Other graphical parameters to be passed on to \code{\link{dotchart}}.
+#' @return Invisibly, the importance of the variables that were plotted.
+#' @author Andy Liaw \email{andy_liaw@merck.com}.
 #' @export
 varImpPlot <- function(x, sort=TRUE,
                        n.var=min(30, nrow(x$importance)),
@@ -7,7 +20,7 @@ varImpPlot <- function(x, sort=TRUE,
                        main=deparse(substitute(x)), ...) {
     if (!inherits(x, "rfCountData"))
         stop("This function only works for objects of class `rfCountData'")
-    imp <- importance(x, class=class, scale=scale, type=type, ...)
+    imp <- importance(x)
     ## If there are more than two columns, just use the last two columns.
     if (ncol(imp) > 2) imp <- imp[, -(1:(ncol(imp) - 2))]
     nmeas <- ncol(imp)

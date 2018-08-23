@@ -130,12 +130,13 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   
   /* print header for running output */
   if (*jprint <= *nTree) {
-    Rprintf("     |      Out-of-bag   ");
-    Rprintf("     |      Training set   ");
-    if (*testdat) Rprintf("| Test set    ");
+             Rprintf("     | Out-of-bag  ");
+             Rprintf(" | Training set ");
+    if (*testdat) Rprintf("|   Test set   ");
     Rprintf("|\n");
-    Rprintf("Tree |Loss Function  ");
-    if (*testdat) Rprintf("|Loss Function  ");
+    Rprintf("Tree |Loss Function ");
+             Rprintf("|Loss Function ");
+    if (*testdat) Rprintf("|Loss Function ");
     Rprintf("|\n");
   }
   GetRNGstate();
@@ -239,10 +240,9 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     /* Print running output. */
     if ((j + 1) % *jprint == 0) {
       Rprintf("%4d |", j + 1);
-      Rprintf(" %8.4g ", ooberr);
-      Rprintf("%4d |", j + 1);
-      Rprintf(" %8.4g ", errb);
-      if(*labelts == 1) Rprintf("| %8.4g ",
+      Rprintf(" %12.6g ", ooberr);
+      Rprintf("| %12.6g ", errb);
+      if(*labelts == 1) Rprintf("| %12.6g ",
          errts);
       Rprintf("|\n");
     }

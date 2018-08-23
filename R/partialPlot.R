@@ -3,8 +3,7 @@
 #' @description Partial dependence plot gives a graphical
 #'  depiction of the marginal effect of a variable on the response variable.
 #' @usage partialPlot(x, pred.data, x.var, offset,
-#' w, plot = TRUE, add = FALSE,
-#' n.pt = min(length(unique(pred.data[, xname])), 51),
+#' w, plot = TRUE, n.pt = min(length(unique(pred.data[, xname])), 51),
 #' rug = TRUE, xlab=deparse(substitute(x.var)), ylab="",
 #' main=paste("Partial Dependence on", deparse(substitute(x.var))),...)
 #' @param x, an object of class \code{rfCountData}, which contains a \code{forest} component.
@@ -13,7 +12,6 @@
 #' @param x.var, name of the variable for which partial dependence is to be examined.
 #' @param w, weights to be used in averaging; if not supplied, mean is not weighted
 #' @param plot, whether the plot should be shown on the graphic device.
-#' @param add, whether to add to existing plot (\code{TRUE}).
 #' @param n.pt, if \code{x.var} is continuous, the number of points on the grid for evaluating partial dependence.
 #' @param rug, whether to draw hash marks at the bottom of the plot indicating the deciles of \code{x.var}.
 #' @param xlab, label for the x-axis.
@@ -30,9 +28,8 @@
 #' @seealso \link{rfPoisson}
 #' @export
 partialPlot <-
-    function (x, pred.data, x.var, offset, w, plot=TRUE, add=FALSE,
-              n.pt = min(length(unique(pred.data[, xname])), 51), rug = TRUE,
-              xlab=deparse(substitute(x.var)), ylab="",
+    function (x, pred.data, x.var, offset, w, plot=TRUE, n.pt = min(length(unique(pred.data[, xname])), 51),
+              rug = TRUE, xlab=deparse(substitute(x.var)), ylab="",
               main=paste("Partial Dependence on", deparse(substitute(x.var))),
               ...)
 {
@@ -47,68 +44,35 @@ partialPlot <-
     xv <- pred.data[, xname]
     n <- nrow(pred.data)
     if (missing(w)) w <- rep(1, n)
-    # if (classRF) {
-    #     if (missing(which.class)) {
-    #         focus <- 1
-    #     }
-    #     else {
-            # focus <- charmatch(which.class, colnames(x$votes))
-            # if (is.na(focus))
-            #     stop(which.class, "is not one of the class labels.")
-        # }
     if (is.factor(xv) && !is.ordered(xv)) {
         x.pt <- levels(xv)
         y.pt <- numeric(length(x.pt))
         for (i in seq(along = x.pt)) {
             x.data <- pred.data
             x.data[, xname] <- factor(rep(x.pt[i], n), levels = x.pt)
-            # if (classRF) {
-            #     pr <- predict(x, x.data, type = "prob")
-            #     y.pt[i] <- weighted.mean(log(ifelse(pr[, focus] > 0,
-            #                                         pr[, focus], .Machine$double.eps)) -
-            #                              rowMeans(log(ifelse(pr > 0, pr, .Machine$double.eps))),
-            #                              w, na.rm=TRUE)
-            # } else 
-              y.pt[i] <- weighted.mean(predict(x, x.data,offset), w, na.rm=TRUE)
-
+            y.pt[i] <- weighted.mean(predict(x, x.data,offset), w, na.rm=TRUE)
         }
-        if (add) {
-            points(1:length(x.pt), y.pt, type="h", lwd=2, ...)
-        } else {
-            if (plot) barplot(y.pt, width=rep(1, length(y.pt)), col="blue",
-                              xlab = xlab, ylab = ylab, main=main,
-                              names.arg=x.pt, ...)
-        }
+        if (plot) p=ggplot2::ggplot() + ggplot2::geom_bar(ggplot2::aes(x = x.pt,y =y.pt, fill=x.pt), stat="identity")+
+            ggplot2::xlab(xlab) + ggplot2::ylab(ylab) + ggplot2::ggtitle(main) + ggplot2::theme(legend.position = "none")
     } else {
+      
         if (is.ordered(xv)) xv <- as.numeric(xv)
         x.pt <- seq(min(xv), max(xv), length = n.pt)
         y.pt <- numeric(length(x.pt))
         for (i in seq(along = x.pt)) {
             x.data <- pred.data
             x.data[, xname] <- rep(x.pt[i], n)
-            # if (classRF) {
-            #     pr <- predict(x, x.data, type = "prob")
-            #     y.pt[i] <- weighted.mean(log(ifelse(pr[, focus] == 0,
-            #                                         .Machine$double.eps, pr[, focus]))
-            #                              - rowMeans(log(ifelse(pr == 0, .Machine$double.eps, pr))),
-            #                              w, na.rm=TRUE)
-            # } else {
-                y.pt[i] <- weighted.mean(predict(x, x.data, offset), w, na.rm=TRUE)
-            # }
+            y.pt[i] <- weighted.mean(predict(x, x.data, offset), w, na.rm=TRUE)
         }
-        if (add) {
-            lines(x.pt, y.pt, ...)
-        } else {
-            if (plot) plot(x.pt, y.pt, type = "l", xlab=xlab, ylab=ylab,
-                           main = main, ...)
-        }
+        if (plot) p=ggplot2::ggplot() +  ggplot2::geom_line(ggplot2::aes(x=x.pt, y=y.pt)) +  
+          ggplot2::xlab(xlab) + ggplot2::ylab(ylab) +  ggplot2::ggtitle(main)
         if (rug && plot) {
             if (n.pt > 10) {
-                rug(quantile(xv, seq(0.1, 0.9, by = 0.1)), side = 1)
+                p = p+ggplot2::geom_rug(ggplot2::aes(x=quantile(xv, seq(0.1, 0.9, by = 0.1))))
             } else {
-                rug(unique(xv, side = 1))
+              p = p+ggplot2::geom_rug(ggplot2::aes(x=unique(xv)))
             }
         }
     }
-    invisible(list(x = x.pt, y = y.pt))
+    p
 }

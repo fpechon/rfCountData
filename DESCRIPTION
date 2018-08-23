@@ -1,6 +1,6 @@
 Package: rfCountData
 Title: Random Forests for Count Data
-Version: 0.2
+Version: 0.2.1
 Date: 2018-05-17
 Depends: R (>= 3.2), stats
 Suggests: RColorBrewer, MASS
@@ -13,4 +13,4 @@ License: GPL (>= 2)
 NeedsCompilation: yes
 Packaged: 2018-07-24 10:53:32 UTC; pechonf
 Date/Publication: 2015-10-07 08:38:34
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

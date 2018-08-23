@@ -229,9 +229,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
       /* compute testset MSE */
       if (*labelts) {
         for (n = 0; n < ntest; ++n) {
-          resid = *biasCorr ?
-          yts[n] - (coef[0] + coef[1]*yTestPred[n]) :
-          yTestPred[n] - yts[n] + yts[n] * log(yts[n] + (yts[n]==0)) - yts[n] * log(yTestPred[n]+(yTestPred[n]==0));//yTestPred[n] - yts[n]*log(yTestPred[n] + (yTestPred[n]==0));
+          resid = yTestPred[n] - yts[n] + yts[n] * log(yts[n] + (yts[n]==0)) - yts[n] * log(yTestPred[n]+(yTestPred[n]==0));//yTestPred[n] - yts[n]*log(yTestPred[n] + (yTestPred[n]==0));
           errts += 2*resid ;//* resid;
         }
         errts /= ntest;

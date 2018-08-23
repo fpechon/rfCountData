@@ -131,6 +131,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   /* print header for running output */
   if (*jprint <= *nTree) {
     Rprintf("     |      Out-of-bag   ");
+    Rprintf("     |      Training set   ");
     if (*testdat) Rprintf("| Test set    ");
     Rprintf("|\n");
     Rprintf("Tree |Loss Function  ");
@@ -197,16 +198,18 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
         nout[n]++;
         nOOB++;
         yptr[n] = ((nout[n]-1) * yptr[n] + ytr[n]) / nout[n];
-        resOOB[n] = ytr[n] - y[n]*log(ytr[n]+ (ytr[n]==0));//ytr[n]-y[n];
-        ooberr += resOOB[n] ;//* resOOB[n];
+        resOOB[n] = ytr[n] - y[n] + y[n] * log(y[n] + (y[n]==0)) - y[n] * log(ytr[n]+(ytr[n]==0)); //ytr[n] - y[n]*log(ytr[n]+ (ytr[n]==0));//ytr[n]-y[n];
+        ooberr += 2*resOOB[n] ;//* resOOB[n];
       }
       if (nout[n]) {
         jout++;
         //errb += (y[n] - yptr[n]) * (y[n] - yptr[n]);
-        errb +=   yptr[n] - y[n]*log(yptr[n]+ (yptr[n]==0));
+        errb +=   yptr[n] - y[n] + y[n] * log(y[n] + (y[n]==0)) - y[n] * log(yptr[n]+(yptr[n]==0));
       }
     }
+    ooberr /= nOOB;
     errb /= nsample;
+    errb *= 2;
     /* Do simple linear regression of y on yhat for bias correction. */
     if (*biasCorr) simpleLinReg(nsample, yptr, y, coef, &errb, nout);
     
@@ -227,14 +230,16 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
         for (n = 0; n < ntest; ++n) {
           resid = *biasCorr ?
           yts[n] - (coef[0] + coef[1]*yTestPred[n]) :
-          yTestPred[n] - yts[n]*log(yTestPred[n] + (yTestPred[n]==0));
-          errts += resid ;//* resid;
+          yTestPred[n] - yts[n] + yts[n] * log(yts[n] + (yts[n]==0)) - yts[n] * log(yTestPred[n]+(yTestPred[n]==0));//yTestPred[n] - yts[n]*log(yTestPred[n] + (yTestPred[n]==0));
+          errts += 2*resid ;//* resid;
         }
         errts /= ntest;
       }
     }
     /* Print running output. */
     if ((j + 1) % *jprint == 0) {
+      Rprintf("%4d |", j + 1);
+      Rprintf(" %8.4g ", ooberr);
       Rprintf("%4d |", j + 1);
       Rprintf(" %8.4g ", errb);
       if(*labelts == 1) Rprintf("| %8.4g ",

@@ -22,13 +22,15 @@ double poissondev(double y, double y_pred){
 
 void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
            int *nthsize, int *nrnodes, int *nTree, int *mtry, int *imp,
-           int *cat, int *maxcat, int *jprint, int *doProx, int *oobprox,
-           int *biasCorr, double *yptr, double *errimp, double *impmat,
-           double *impSD, double *prox, int *treeSize, int *nodestatus,
+           int *cat, int *maxcat, int *jprint, 
+           double *yptr, double *errimp, 
+           double *impSD, 
+           int *treeSize, int *nodestatus,
            int *lDaughter, int *rDaughter, double *avnode, int *mbest,
            double *upper, double *mse, int *keepf, int *replace,
            int *testdat, double *xts, int *nts, double *yts, double *offsetts, int *labelts,
-           double *yTestPred, double *proxts, double *msets, double *coef,
+           double *yTestPred, 
+           double *msets, double *coef,
            int *nout, int *inbag) {
   /*************************************************************************
   Input:
@@ -56,7 +58,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   
   int k, m, mr, n, nOOB, j, jout, idx, ntest, last, ktmp, nPerm,
   nsample, mdim, keepF, keepInbag;
-  int *oobpair, varImp, localImp, *varUsed;
+  int *oobpair, varImp, *varUsed; //localImp
   
   int *in, *nind, *nodex, *nodexts;
   
@@ -64,8 +66,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   mdim = xdim[1];
   ntest = *nts;
   varImp = imp[0];
-  localImp = imp[1];
-  nPerm = imp[2];
+  //localImp = imp[1];
+  nPerm = imp[1];
   keepF = keepf[0];
   keepInbag = keepf[1];
   
@@ -87,8 +89,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     ytree      = (double *) S_alloc(ntest, sizeof(double));
     nodexts    = (int *) S_alloc(ntest, sizeof(int));
   }
-  oobpair = (*doProx && *oobprox) ?
-  (int *) S_alloc(nsample * nsample, sizeof(int)) : NULL;
+  //oobpair = (*doProx && *oobprox) ?
+  //(int *) S_alloc(nsample * nsample, sizeof(int)) : NULL;
   
   /* If variable importance is requested, tgini points to the second
   "column" of errimp, otherwise it's just the same as errimp. */
@@ -116,14 +118,14 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     varYts /= ntest;
   }
   
-  if (*doProx) {
+  /*if (*doProx) {
     zeroDouble(prox, nsample * nsample);
     if (*testdat) zeroDouble(proxts, ntest * (nsample + ntest));
-  }
+  }*/
   
   if (varImp) {
     zeroDouble(errimp, mdim * 2);
-    if (localImp) zeroDouble(impmat, nsample * mdim);
+    //if (localImp) zeroDouble(impmat, nsample * mdim);
   } else {
     zeroDouble(errimp, mdim);
   }
@@ -349,7 +351,7 @@ void regForest(double *x, double *offset, double *ypred, int *mdim, int *n,
   } else {
     zeroInt(nodex, *n);
   }
-  if (*doProx) zeroDouble(proxMat, *n * *n);
+  //if (*doProx) zeroDouble(proxMat, *n * *n);
   if (*keepPred) zeroDouble(allpred, *n * *ntree);
   idx1 = 0;
   idx2 = 0;
@@ -365,13 +367,13 @@ void regForest(double *x, double *offset, double *ypred, int *mdim, int *n,
       for (j = 0; j < *n; ++j) allpred[j + i * *n] = ytree[j];
     }
     /* if desired, do proximities for this round */
-    if (*doProx) computeProximity(proxMat, 0, nodex + idx2, junk,
-        junk, *n);
+    //if (*doProx) computeProximity(proxMat, 0, nodex + idx2, junk,
+    //    junk, *n);
     idx1 += *nrnodes; /* increment the offset */
     if (*nodes) idx2 += *n;
   }
   for (i = 0; i < *n; ++i) ypred[i] /= *ntree;
-  if (*doProx) {
+  /*if (*doProx) {
     for (i = 0; i < *n; ++i) {
       for (j = i + 1; j < *n; ++j) {
         proxMat[i + j * *n] /= *ntree;
@@ -379,5 +381,5 @@ void regForest(double *x, double *offset, double *ypred, int *mdim, int *n,
       }
       proxMat[i + i * *n] = 1.0;
     }
-  }
+  }*/
 }

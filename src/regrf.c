@@ -289,7 +289,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
               }
             }
           }
-          delta = (ooberrperm / nPerm - ooberr) / nOOB;
+          delta = (ooberrperm / nPerm)  / nOOB - ooberr;
           errimp[mr] += delta;
           impSD[mr] += delta * delta;
           /* copy original data back */

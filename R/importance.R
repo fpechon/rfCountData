@@ -2,9 +2,10 @@
 #' @param x, an object of class \code{\link{rfCountData}}.
 #' @return A vector of importance measure, one item for each predictor variable.
 #' @details The measure is computed from permuting OOB data: For each tree, the prediction error 
-#' on the out-of-bag portion of the data is recorded (deviance). 
+#' on the out-of-bag portion of the data is recorded (mean deviance). 
 #' Then the same is done after permuting each predictor variable. 
-#' The difference between the two are then averaged over all trees. 
+#' The difference between the two are then averaged over all trees. Note that 
+#' the mean deviances are compared (and not the deviances themselves).
 #' @seealso \link{rfPoisson}, \link{varImpPlot}.
 #' @export
 importance <- function(x) {

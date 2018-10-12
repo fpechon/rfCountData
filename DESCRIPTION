@@ -2,7 +2,7 @@ Package: rfCountData
 Title: Random Forests for Count Data
 Version: 0.2.1
 Date: 2018-05-17
-Depends: R (>= 3.2), stats
+Depends: R (>= 3.2), stats, ggplot2
 Suggests: RColorBrewer, MASS
 Author: Fortran original by Leo Breiman and Adele Cutler, R port by
         Andy Liaw and Matthew Wiener. Poisson regression by Florian Pechon.

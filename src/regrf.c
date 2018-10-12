@@ -280,8 +280,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
                            treeSize[j], cat, *maxcat, nodex);
             for (n = 0; n < nsample; ++n) {
               if (in[n] == 0) {
-                r = ytr[n] - y[n]*log(ytr[n]+ (ytr[n]==0)); //ytr[n] - y[n];
-                ooberrperm += r ;//* r;
+                r = ytr[n] - y[n] + y[n] * log(y[n] + (y[n]==0)) - y[n] * log(ytr[n]+(ytr[n]==0));//ytr[n] - y[n]*log(ytr[n]+ (ytr[n]==0)); //ytr[n] - y[n];
+                ooberrperm += 2*r ;//* r;
                 //if (localImp) {
                 //  impmat[mr + n * mdim] +=
                 //    (r*r - resOOB[n]*resOOB[n]) / nPerm;

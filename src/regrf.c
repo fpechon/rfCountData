@@ -15,8 +15,9 @@ GNU General Public License for more details.
 #include <R.h>
 #include "rf.h"
 
-void simpleLinReg(int nsample, double *x, double *y, double *coef,
-                  double *mse, int *hasPred);
+double poissondev(double y, double y_pred){
+  return y_pred - y + y * log(y + (y==0)) - y * log(y_pred+(y_pred==0));
+}
 
 
 void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
@@ -199,20 +200,17 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
         nout[n]++;
         nOOB++;
         yptr[n] = ((nout[n]-1) * yptr[n] + ytr[n]) / nout[n];
-        resOOB[n] = ytr[n] - y[n] + y[n] * log(y[n] + (y[n]==0)) - y[n] * log(ytr[n]+(ytr[n]==0)); //ytr[n] - y[n]*log(ytr[n]+ (ytr[n]==0));//ytr[n]-y[n];
-        ooberr += 2*resOOB[n] ;//* resOOB[n];
+        resOOB[n] = poissondev(y[n], ytr[n]); 
+        ooberr += 2*resOOB[n];
       }
       if (nout[n]) {
         jout++;
-        //errb += (y[n] - yptr[n]) * (y[n] - yptr[n]);
-        errb +=   yptr[n] - y[n] + y[n] * log(y[n] + (y[n]==0)) - y[n] * log(yptr[n]+(yptr[n]==0));
+        errb +=   poissondev(y[n], yptr[n]);
       }
     }
     ooberr /= nOOB;
     errb /= nsample;
     errb *= 2;
-    /* Do simple linear regression of y on yhat for bias correction. */
-    if (*biasCorr) simpleLinReg(nsample, yptr, y, coef, &errb, nout);
     
     /* predict testset data with the current tree */
     if (*testdat) {
@@ -229,8 +227,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
       /* compute testset MSE */
       if (*labelts) {
         for (n = 0; n < ntest; ++n) {
-          resid = yTestPred[n] - yts[n] + yts[n] * log(yts[n] + (yts[n]==0)) - yts[n] * log(yTestPred[n]+(yTestPred[n]==0));//yTestPred[n] - yts[n]*log(yTestPred[n] + (yTestPred[n]==0));
-          errts += 2*resid ;//* resid;
+          resid = poissondev(yts[n], yTestPred[n]); 
+          errts += 2*resid;
         }
         errts /= ntest;
       }
@@ -248,11 +246,11 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     if (*labelts) msets[j] = errts;
     
     /*  DO PROXIMITIES */
-    if (*doProx) {
+    /*if (*doProx) {
       computeProximity(prox, *oobprox, nodex, in, oobpair, nsample);
-      /* proximity for test data */
+      // proximity for test data 
       if (*testdat) {
-        /* In the next call, in and oobpair are not used. */
+        // In the next call, in and oobpair are not used. 
         computeProximity(proxts, 0, nodexts, in, oobpair, ntest);
         for (n = 0; n < ntest; ++n) {
           for (k = 0; k < nsample; ++k) {
@@ -262,7 +260,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
           }
         }
       }
-    }
+    }*/
     
     /* Variable importance */
     if (varImp) {
@@ -280,16 +278,13 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
                            treeSize[j], cat, *maxcat, nodex);
             for (n = 0; n < nsample; ++n) {
               if (in[n] == 0) {
-                r = ytr[n] - y[n] + y[n] * log(y[n] + (y[n]==0)) - y[n] * log(ytr[n]+(ytr[n]==0));//ytr[n] - y[n]*log(ytr[n]+ (ytr[n]==0)); //ytr[n] - y[n];
-                ooberrperm += 2*r ;//* r;
-                //if (localImp) {
-                //  impmat[mr + n * mdim] +=
-                //    (r*r - resOOB[n]*resOOB[n]) / nPerm;
-                //}
+                r = poissondev(y[n], ytr[n]);
+                ooberrperm += 2*r;
               }
             }
           }
-          delta = (ooberrperm / nPerm)  / nOOB - ooberr;
+          ooberrperm /=nPerm*nOOB;
+          delta = ooberrperm - ooberr;
           errimp[mr] += delta;
           impSD[mr] += delta * delta;
           /* copy original data back */
@@ -301,7 +296,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   }
   PutRNGstate();
   /* end of tree iterations=======================================*/
-  if (*biasCorr) {  /* bias correction for predicted values */
+  /*if (*biasCorr) {  // bias correction for predicted values 
   for (n = 0; n < nsample; ++n) {
     if (nout[n]) yptr[n] = coef[0] + coef[1] * yptr[n];
   }
@@ -310,8 +305,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
       yTestPred[n] = coef[0] + coef[1] * yTestPred[n];
     }
   }
-  }
-  if (*doProx) {
+  }*/
+  /*if (*doProx) {
     for (n = 0; n < nsample; ++n) {
       for (k = n + 1; k < nsample; ++k) {
         prox[nsample*k + n] /= *oobprox ?
@@ -326,17 +321,12 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
         for (k = 0; k < ntest + nsample; ++k)
           proxts[ntest*k + n] /= *nTree;
     }
-  }
+  }*/
   if (varImp) {
     for (m = 0; m < mdim; ++m) {
       errimp[m] = errimp[m] / *nTree;
       impSD[m] = sqrt( ((impSD[m] / *nTree) -
         (errimp[m] * errimp[m])) / *nTree );
-      //if (localImp) {
-      //  for (n = 0; n < nsample; ++n) {
-      //    impmat[m + n * mdim] /= nout[n];
-      //  }
-      //}
     }
   }
   for (m = 0; m < mdim; ++m) tgini[m] /= *nTree;
@@ -390,46 +380,4 @@ void regForest(double *x, double *offset, double *ypred, int *mdim, int *n,
       proxMat[i + i * *n] = 1.0;
     }
   }
-}
-
-void simpleLinReg(int nsample, double *x, double *y, double *coef,
-                  double *mse, int *hasPred) {
-  /* Compute simple linear regression of y on x, returning the coefficients,
-  the average squared residual, and the predicted values (overwriting y). */
-  int i, nout = 0;
-  double sxx=0.0, sxy=0.0, xbar=0.0, ybar=0.0;
-  double dx = 0.0, dy = 0.0, py=0.0;
-  
-  for (i = 0; i < nsample; ++i) {
-    if (hasPred[i]) {
-      nout++;
-      xbar += x[i];
-      ybar += y[i];
-    }
-  }
-  xbar /= nout;
-  ybar /= nout;
-  
-  for (i = 0; i < nsample; ++i) {
-    if (hasPred[i]) {
-      dx = x[i] - xbar;
-      dy = y[i] - ybar;
-      sxx += dx * dx;
-      sxy += dx * dy;
-    }
-  }
-  coef[1] = sxy / sxx;
-  coef[0] = ybar - coef[1] * xbar;
-  
-  *mse = 0.0;
-  for (i = 0; i < nsample; ++i) {
-    if (hasPred[i]) {
-      py = coef[0] + coef[1] * x[i];
-      dy = y[i] - py;
-      *mse += dy * dy;
-      /* y[i] = py; */
-    }
-  }
-  *mse /= nout;
-  return;
 }

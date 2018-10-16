@@ -50,8 +50,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   squared errors when the mth variable is randomly permuted.
   
   *************************************************************************/
-  double errts = 0.0, averrb, meanY, meanYts, varY, varYts, r, xrand,
-    errb = 0.0,  ooberr, ooberrperm, delta;
+  double errts = 0.0, averrb, xrand, errb = 0.0,  ooberr, ooberrperm, delta;
   
   double *yb,*offsetb, *xtmp, *xb, *ytr, *ytree, *tgini;
   
@@ -92,26 +91,10 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   tgini = varImp ? errimp + mdim : errimp;
   
   averrb = 0.0;
-  meanY = 0.0;
-  varY = 0.0;
+
   
   zeroDouble(yptr, nsample);
   zeroInt(nout, nsample);
-  for (n = 0; n < nsample; ++n) {
-    varY += n * (y[n] - meanY)*(y[n] - meanY) / (n + 1);
-    meanY = (n * meanY + y[n]) / (n + 1);
-  }
-  varY /= nsample;
-  
-  varYts = 0.0;
-  meanYts = 0.0;
-  if (*testdat) {
-    for (n = 0; n < ntest; ++n) {
-      varYts += n * (yts[n] - meanYts)*(yts[n] - meanYts) / (n + 1);
-      meanYts = (n * meanYts + yts[n]) / (n + 1);
-    }
-    varYts /= ntest;
-  }
 
   if (varImp) {
     zeroDouble(errimp, mdim * 2);

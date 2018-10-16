@@ -18,7 +18,6 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
 #' @param ntree, Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times. 
 #' @param mtry Number of variables randomly sampled as candidates at each split.  Default is p/3, where p is the number of variables in \code{x}.
 #' @param replace Should sampling of cases be done with or without replacement?
-#' @param strata A (factor) variable that is used for stratified sampling.
 #' @param sampsize Size(s) of sample to draw.
 #' @param nodesize Minimum size of terminal nodes.  Setting this number 
 #' larger causes smaller trees to be grown (and thus take less time). Default is 5000.
@@ -61,16 +60,15 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
 rfPoisson <-
     function(x, offset=NULL, y=NULL,  xtest=NULL, ytest=NULL, offsettest=NULL, ntree=500,
              mtry=max(floor(ncol(x)/3), 1),
-             replace=TRUE, classwt=NULL, cutoff, strata,
+             replace=TRUE,
              sampsize = if (replace) nrow(x) else ceiling(.632*nrow(x)),
              nodesize = 5000,
              maxnodes=NULL,
              importance=TRUE, 
              nPerm=1,
-             norm.votes=TRUE, do.trace=FALSE,
-             keep.forest=!is.null(y) && is.null(xtest), corr.bias=FALSE,
+             do.trace=FALSE,
+             keep.forest=!is.null(y) && is.null(xtest),
              keep.inbag=FALSE, ...) {
-    addclass <- FALSE #is.null(y)
     n <- nrow(x)
     p <- ncol(x)
     if (n == 0) stop("data (x) has 0 rows")
@@ -130,18 +128,6 @@ rfPoisson <-
     maxcat <- max(ncat)
     if (maxcat > 53)
         warning("Can not handle categorical predictors with more than 53 categories.")
-    # if (proximity) {
-    #     prox <- matrix(0.0, n, n)
-    #     proxts <- if (testdat) matrix(0, ntest, ntest + n) else double(1)
-    # } else {
-    #     prox <- proxts <- double(1)
-    # }
-
-    # if (localImp) {
-    #     importance <- TRUE
-    #     impmat <- matrix(0, p, n)
-    # } else impmat <- double(1)
-
     if (importance) {
         if (nPerm < 1) nPerm <- as.integer(1) else nPerm <- as.integer(nPerm)
             impout <- matrix(0.0, p, 2)
@@ -152,7 +138,7 @@ rfPoisson <-
         impSD <- double(1)
     }
 
-    nsample <- if (addclass) 2 * n else n
+    nsample <-  n
     Stratify <- length(sampsize) > 1
     if (Stratify) stop("sampsize should be of length one")
     ## For regression trees, need to do this to get maximal trees.
@@ -200,7 +186,6 @@ rfPoisson <-
                     as.integer(do.trace),
                     ypred = double(n),
                     impout = impout,
-                    impSD = impSD,
                     ndbigtree = integer(ntree),
                     nodestatus = matrix(integer(nrnodes * nt), ncol=nt),
                     leftDaughter = matrix(integer(nrnodes * nt), ncol=nt),
@@ -208,7 +193,7 @@ rfPoisson <-
                     nodepred = matrix(double(nrnodes * nt), ncol=nt),
                     bestvar = matrix(integer(nrnodes * nt), ncol=nt),
                     xbestsplit = matrix(double(nrnodes * nt), ncol=nt),
-                    mse = double(ntree),
+                    dev = double(ntree),
                     keep = as.integer(c(keep.forest, keep.inbag)),
                     replace = as.integer(replace),
                     testdat = as.integer(testdat),
@@ -218,13 +203,13 @@ rfPoisson <-
                     offsetts = as.double(offsettest),
                     labelts = as.integer(labelts),
                     ytestpred = double(ntest),
-                    msets = double(if (labelts) ntree else 1),
+                    devts = double(if (labelts) ntree else 1),
                     coef = double(2),
                     oob.times = integer(n),
                     inbag = if (keep.inbag)
                     matrix(integer(n * ntree), n) else integer(1),
                     DUP=FALSE,
-                    PACKAGE="rfCountData")[c(14:25, 32:38)]
+                    PACKAGE="rfCountData")[c(14:24, 31:37)]
         ## Format the forest component, if present.
         if (keep.forest) {
             max.nodes <- max(rfout$ndbigtree)
@@ -252,15 +237,13 @@ rfPoisson <-
         out <- list(call = cl,
                     type = "regression",
                     predicted = structure(ypred, names=x.row.names),
-                    mse = rfout$mse,
-                    rsq = 1 - rfout$mse / (var(y) * (n-1) / n),
+                    dev = rfout$dev,
                     oob.times = rfout$oob.times,
                     importance = if (importance) matrix(rfout$impout, p, 2,
                     dimnames=list(x.col.names,
                                   c("%IncLossFunction","IncNodePurity"))) else
                         matrix(rfout$impout, ncol=1,
                                dimnames=list(x.col.names, "IncNodePurity")),
-                    importanceSD=if (importance) rfout$impSD else NULL,
                     ntree = ntree,
                     mtry = mtry,
                     forest = if (keep.forest)
@@ -273,9 +256,7 @@ rfPoisson <-
                     test = if(testdat) {
                         list(predicted = structure(rfout$ytestpred,
                              names=xts.row.names),
-                             mse = if(labelts) rfout$msets else NULL,
-                             rsq = if(labelts) 1 - rfout$msets /
-                                        (var(ytest) * (n-1) / n) else NULL)
+                             dev = if(labelts) rfout$devts else NULL)
                     } else NULL,
                     inbag = if (keep.inbag)
                     matrix(rfout$inbag, nrow(rfout$inbag),

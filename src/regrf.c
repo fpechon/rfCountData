@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "rf.h"
 
 double poissondev(double y, double y_pred){
-  return y_pred - y + y * log(y + (y==0)) - y * log(y_pred+(y_pred==0));
+  return 2*(y_pred - y + y * log(y + (y==0)) - y * log(y_pred+(y_pred==0)));
 }
 
 
@@ -51,7 +51,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   
   *************************************************************************/
   double errts = 0.0, averrb, meanY, meanYts, varY, varYts, r, xrand,
-    errb = 0.0, resid=0.0, ooberr, ooberrperm, delta, *resOOB;
+    errb = 0.0,  ooberr, ooberrperm, delta;
   
   double *yb,*offsetb, *xtmp, *xb, *ytr, *ytree, *tgini;
   
@@ -76,7 +76,6 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   xb         = (double *) S_alloc(mdim * *sampsize, sizeof(double));
   ytr        = (double *) S_alloc(nsample, sizeof(double));
   xtmp       = (double *) S_alloc(nsample, sizeof(double));
-  resOOB     = (double *) S_alloc(nsample, sizeof(double));
   
   in        = (int *) S_alloc(nsample, sizeof(int));
   nodex      = (int *) S_alloc(nsample, sizeof(int));
@@ -192,8 +191,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
         nout[n]++;
         nOOB++;
         yptr[n] = ((nout[n]-1) * yptr[n] + ytr[n]) / nout[n];
-        resOOB[n] = poissondev(y[n], ytr[n]); 
-        ooberr += 2*resOOB[n];
+        ooberr += poissondev(y[n], ytr[n]);
       }
       if (nout[n]) {
         jout++;
@@ -202,7 +200,6 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     }
     ooberr /= nOOB;
     errb /= jout;
-    errb *= 2;
     
     /* predict testset data with the current tree */
     if (*testdat) {
@@ -219,8 +216,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
       /* compute testset Deviance */
       if (*labelts) {
         for (n = 0; n < ntest; ++n) {
-          resid = poissondev(yts[n], yTestPred[n]); 
-          errts += 2*resid;
+          errts += poissondev(yts[n], yTestPred[n]); 
         }
         errts /= ntest;
       }
@@ -252,8 +248,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
                            treeSize[j], cat, *maxcat, nodex);
             for (n = 0; n < nsample; ++n) {
               if (in[n] == 0) {
-                r = poissondev(y[n], ytr[n]);
-                ooberrperm += 2*r;
+                ooberrperm += poissondev(y[n], ytr[n]);
               }
             }
           }

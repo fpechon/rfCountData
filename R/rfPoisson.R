@@ -138,7 +138,6 @@ rfPoisson <-
         impSD <- double(1)
     }
 
-    nsample <-  n
     Stratify <- length(sampsize) > 1
     if (Stratify) stop("sampsize should be of length one")
     ## For regression trees, need to do this to get maximal trees.

@@ -123,8 +123,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   
   /* print header for running output */
   if (*jprint <= *nTree) {
-             Rprintf("     | Out-of-bag  ");
-             Rprintf(" | Training set ");
+             Rprintf("     | OOB (1 tree)");
+             Rprintf(" | OOB (forest) ");
     if (*testdat) Rprintf("|   Test set   ");
     Rprintf("|\n");
     Rprintf("Tree |Loss Function ");

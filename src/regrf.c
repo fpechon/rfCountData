@@ -26,10 +26,10 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
            double *yptr, double *errimp, 
            int *treeSize, int *nodestatus,
            int *lDaughter, int *rDaughter, double *avnode, int *mbest,
-           double *upper, double *mse, int *keepf, int *replace,
+           double *upper, double *dev, int *keepf, int *replace,
            int *testdat, double *xts, int *nts, double *yts, double *offsetts, int *labelts,
            double *yTestPred, 
-           double *msets, double *coef,
+           double *devts, double *coef,
            int *nout, int *inbag) {
   /*************************************************************************
   Input:
@@ -216,7 +216,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
       for (n = 0; n < ntest; ++n) {
         yTestPred[n] = (j * yTestPred[n] + ytree[n]) / (j + 1);
       }
-      /* compute testset MSE */
+      /* compute testset Deviance */
       if (*labelts) {
         for (n = 0; n < ntest; ++n) {
           resid = poissondev(yts[n], yTestPred[n]); 
@@ -234,8 +234,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
          errts);
       Rprintf("|\n");
     }
-    mse[j] = errb;
-    if (*labelts) msets[j] = errts;
+    dev[j] = errb;
+    if (*labelts) devts[j] = errts;
     /* Variable importance */
     if (varImp) {
       for (mr = 0; mr < mdim; ++mr) {

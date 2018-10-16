@@ -4,8 +4,15 @@
 \alias{plot.rfCountData}
 \title{plot.rfCountData}
 \usage{
-\method{plot}{rfCountData}(x, type = "l", main = deparse(substitute(x)),
-  ...)
+\method{plot}{rfCountData}(x, main = deparse(substitute(x)),
+  oob = TRUE, testing = TRUE, ...)
+}
+\arguments{
+\item{x, }{a rfCountData object}
+
+\item{oob, }{Should the Poisson deviance of the OOB be plotted ? Defaults to \code{TRUE}.}
+
+\item{testing, }{Should the Poisson deviance of the training set be plotted ? Defaults to \code{TRUE}, if a test set was used previously.}
 }
 \description{
 plot.rfCountData

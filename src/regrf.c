@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "rf.h"
 
 double poissondev(double y, double y_pred){
-  return y_pred - y + y * log(y + (y==0)) - y * log(y_pred+(y_pred==0));
+  return 2*(y_pred - y + y * log(y + (y==0)) - y * log(y_pred+(y_pred==0)));
 }
 
 
@@ -26,10 +26,10 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
            double *yptr, double *errimp, 
            int *treeSize, int *nodestatus,
            int *lDaughter, int *rDaughter, double *avnode, int *mbest,
-           double *upper, double *mse, int *keepf, int *replace,
+           double *upper, double *dev, int *keepf, int *replace,
            int *testdat, double *xts, int *nts, double *yts, double *offsetts, int *labelts,
            double *yTestPred, 
-           double *msets, double *coef,
+           double *devts, double *coef,
            int *nout, int *inbag) {
   /*************************************************************************
   Input:
@@ -50,8 +50,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   squared errors when the mth variable is randomly permuted.
   
   *************************************************************************/
-  double errts = 0.0, averrb, meanY, meanYts, varY, varYts, r, xrand,
-    errb = 0.0, resid=0.0, ooberr, ooberrperm, delta, *resOOB;
+  double errts = 0.0, averrb, xrand, errb = 0.0,  ooberr, ooberrperm, delta;
   
   double *yb,*offsetb, *xtmp, *xb, *ytr, *ytree, *tgini;
   
@@ -76,7 +75,6 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   xb         = (double *) S_alloc(mdim * *sampsize, sizeof(double));
   ytr        = (double *) S_alloc(nsample, sizeof(double));
   xtmp       = (double *) S_alloc(nsample, sizeof(double));
-  resOOB     = (double *) S_alloc(nsample, sizeof(double));
   
   in        = (int *) S_alloc(nsample, sizeof(int));
   nodex      = (int *) S_alloc(nsample, sizeof(int));
@@ -93,26 +91,10 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   tgini = varImp ? errimp + mdim : errimp;
   
   averrb = 0.0;
-  meanY = 0.0;
-  varY = 0.0;
+
   
   zeroDouble(yptr, nsample);
   zeroInt(nout, nsample);
-  for (n = 0; n < nsample; ++n) {
-    varY += n * (y[n] - meanY)*(y[n] - meanY) / (n + 1);
-    meanY = (n * meanY + y[n]) / (n + 1);
-  }
-  varY /= nsample;
-  
-  varYts = 0.0;
-  meanYts = 0.0;
-  if (*testdat) {
-    for (n = 0; n < ntest; ++n) {
-      varYts += n * (yts[n] - meanYts)*(yts[n] - meanYts) / (n + 1);
-      meanYts = (n * meanYts + yts[n]) / (n + 1);
-    }
-    varYts /= ntest;
-  }
 
   if (varImp) {
     zeroDouble(errimp, mdim * 2);
@@ -192,8 +174,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
         nout[n]++;
         nOOB++;
         yptr[n] = ((nout[n]-1) * yptr[n] + ytr[n]) / nout[n];
-        resOOB[n] = poissondev(y[n], ytr[n]); 
-        ooberr += 2*resOOB[n];
+        ooberr += poissondev(y[n], ytr[n]);
       }
       if (nout[n]) {
         jout++;
@@ -202,7 +183,6 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     }
     ooberr /= nOOB;
     errb /= jout;
-    errb *= 2;
     
     /* predict testset data with the current tree */
     if (*testdat) {
@@ -216,11 +196,10 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
       for (n = 0; n < ntest; ++n) {
         yTestPred[n] = (j * yTestPred[n] + ytree[n]) / (j + 1);
       }
-      /* compute testset MSE */
+      /* compute testset Deviance */
       if (*labelts) {
         for (n = 0; n < ntest; ++n) {
-          resid = poissondev(yts[n], yTestPred[n]); 
-          errts += 2*resid;
+          errts += poissondev(yts[n], yTestPred[n]); 
         }
         errts /= ntest;
       }
@@ -234,8 +213,8 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
          errts);
       Rprintf("|\n");
     }
-    mse[j] = errb;
-    if (*labelts) msets[j] = errts;
+    dev[j] = errb;
+    if (*labelts) devts[j] = errts;
     /* Variable importance */
     if (varImp) {
       for (mr = 0; mr < mdim; ++mr) {
@@ -252,8 +231,7 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
                            treeSize[j], cat, *maxcat, nodex);
             for (n = 0; n < nsample; ++n) {
               if (in[n] == 0) {
-                r = poissondev(y[n], ytr[n]);
-                ooberrperm += 2*r;
+                ooberrperm += poissondev(y[n], ytr[n]);
               }
             }
           }
@@ -276,4 +254,54 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
     }
   }
   for (m = 0; m < mdim; ++m) tgini[m] /= *nTree;
+}
+
+/*----------------------------------------------------------------------*/
+void regForest(double *x, double *offset, double *ypred, int *mdim, int *n,
+               int *ntree, int *lDaughter, int *rDaughter,
+               int *nodestatus, int *nrnodes, double *xsplit,
+               double *avnodes, int *mbest, int *treeSize, int *cat,
+               int *maxcat, int *keepPred, double *allpred, int *doProx,
+               double *proxMat, int *nodes, int *nodex) {
+  int i, j, idx1, idx2, *junk;
+  double *ytree;
+  
+  junk = NULL;
+  ytree = (double *) S_alloc(*n, sizeof(double));
+  if (*nodes) {
+    zeroInt(nodex, *n * *ntree);
+  } else {
+    zeroInt(nodex, *n);
+  }
+  if (*doProx) zeroDouble(proxMat, *n * *n);
+  if (*keepPred) zeroDouble(allpred, *n * *ntree);
+  idx1 = 0;
+  idx2 = 0;
+  for (i = 0; i < *ntree; ++i) {
+    zeroDouble(ytree, *n);
+    predictRegTree(x, offset, *n, *mdim, lDaughter + idx1, rDaughter + idx1,
+                   nodestatus + idx1, ytree, xsplit + idx1,
+                   avnodes + idx1, mbest + idx1, treeSize[i], cat, *maxcat,
+                   nodex + idx2);
+    
+    for (j = 0; j < *n; ++j) ypred[j] += ytree[j];
+    if (*keepPred) {
+      for (j = 0; j < *n; ++j) allpred[j + i * *n] = ytree[j];
+    }
+    /* if desired, do proximities for this round */
+    if (*doProx) computeProximity(proxMat, 0, nodex + idx2, junk,
+        junk, *n);
+    idx1 += *nrnodes; /* increment the offset */
+    if (*nodes) idx2 += *n;
+  }
+  for (i = 0; i < *n; ++i) ypred[i] /= *ntree;
+  if (*doProx) {
+    for (i = 0; i < *n; ++i) {
+      for (j = i + 1; j < *n; ++j) {
+        proxMat[i + j * *n] /= *ntree;
+        proxMat[j + i * *n] = proxMat[i + j * *n];
+      }
+      proxMat[i + i * *n] = 1.0;
+    }
+  }
 }

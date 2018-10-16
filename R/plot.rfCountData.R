@@ -12,7 +12,7 @@ plot.rfCountData <- function(x,  main=deparse(substitute(x)), oob=TRUE, testing=
   if (test)
     d$testing = x$test$dev
   
-  p = ggplot2::ggplot(d)+ggplot2::xlab("trees") + ggplot2::ylab("Poisson Deviance")
+  p = ggplot2::ggplot(d)+ggplot2::xlab("trees") + ggplot2::ylab("Mean Poisson Deviance")
   if (oob)
   p = p + ggplot2::geom_line(ggplot2::aes(x = ntree, y = oob, colour = "Out-of-bag")) 
   if(test) {

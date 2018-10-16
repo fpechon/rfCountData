@@ -255,3 +255,53 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   }
   for (m = 0; m < mdim; ++m) tgini[m] /= *nTree;
 }
+
+/*----------------------------------------------------------------------*/
+void regForest(double *x, double *offset, double *ypred, int *mdim, int *n,
+               int *ntree, int *lDaughter, int *rDaughter,
+               int *nodestatus, int *nrnodes, double *xsplit,
+               double *avnodes, int *mbest, int *treeSize, int *cat,
+               int *maxcat, int *keepPred, double *allpred, int *doProx,
+               double *proxMat, int *nodes, int *nodex) {
+  int i, j, idx1, idx2, *junk;
+  double *ytree;
+  
+  junk = NULL;
+  ytree = (double *) S_alloc(*n, sizeof(double));
+  if (*nodes) {
+    zeroInt(nodex, *n * *ntree);
+  } else {
+    zeroInt(nodex, *n);
+  }
+  if (*doProx) zeroDouble(proxMat, *n * *n);
+  if (*keepPred) zeroDouble(allpred, *n * *ntree);
+  idx1 = 0;
+  idx2 = 0;
+  for (i = 0; i < *ntree; ++i) {
+    zeroDouble(ytree, *n);
+    predictRegTree(x, offset, *n, *mdim, lDaughter + idx1, rDaughter + idx1,
+                   nodestatus + idx1, ytree, xsplit + idx1,
+                   avnodes + idx1, mbest + idx1, treeSize[i], cat, *maxcat,
+                   nodex + idx2);
+    
+    for (j = 0; j < *n; ++j) ypred[j] += ytree[j];
+    if (*keepPred) {
+      for (j = 0; j < *n; ++j) allpred[j + i * *n] = ytree[j];
+    }
+    /* if desired, do proximities for this round */
+    if (*doProx) computeProximity(proxMat, 0, nodex + idx2, junk,
+        junk, *n);
+    idx1 += *nrnodes; /* increment the offset */
+    if (*nodes) idx2 += *n;
+  }
+  for (i = 0; i < *n; ++i) ypred[i] /= *ntree;
+  if (*doProx) {
+    for (i = 0; i < *n; ++i) {
+      for (j = i + 1; j < *n; ++j) {
+        proxMat[i + j * *n] /= *ntree;
+        proxMat[j + i * *n] = proxMat[i + j * *n];
+      }
+      proxMat[i + i * *n] = 1.0;
+    }
+  }
+}

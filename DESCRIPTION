@@ -1,14 +1,14 @@
 Package: rfCountData
 Title: Random Forests for Count Data
-Version: 0.2.1
-Date: 2018-05-17
+Version: 0.3.0
+Date: 2018-10-18
 Depends: R (>= 3.2), stats, ggplot2
 Suggests: RColorBrewer, MASS
-Author: Fortran original by Leo Breiman and Adele Cutler, R port by
-        Andy Liaw and Matthew Wiener. Poisson regression by Florian Pechon.
+Author: Poisson regression by Florian Pechon, Fortran original by Leo Breiman and Adele Cutler, R port by
+        Andy Liaw and Matthew Wiener. 
 Description: Poisson regression (with offset) based on a forest of trees
         using random inputs. Based on the package 'randomForest'.
-Maintainer: Florian Pechon <florian.pechon@uclouvain.be>
+Maintainer: Florian Pechon <florian.pechon@gmail.com>
 License: GPL (>= 2)
 NeedsCompilation: yes
 Packaged: 2018-07-24 10:53:32 UTC; pechonf

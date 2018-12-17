@@ -1,8 +1,8 @@
 # rfCountData
 
 ## Installing the package
-If you are on Windows, make sure Rtools is installed. See https://cran.r-project.org/bin/windows/Rtools/
-If you are on Mac, make sure you have a recent compiler that supports OpenMP parallelization installed. See https://cran.r-project.org/bin/macosx/tools/
+ - If you are on Windows, make sure Rtools is installed. See https://cran.r-project.org/bin/windows/Rtools/
+ - If you are on Mac, make sure you have a recent compiler that supports OpenMP parallelization installed. See https://cran.r-project.org/bin/macosx/tools/
 
 
 

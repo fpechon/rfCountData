@@ -6,7 +6,7 @@ If you are on Mac, make sure you have a recent compiler that supports OpenMP par
 
 
 
-To install the package in R, which run the following lines
+To install the package, run the following lines in R
 
 ``` r
 if (!require(devtools)) install.packages("devtools")

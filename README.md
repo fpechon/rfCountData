@@ -8,8 +8,9 @@ If you are on Mac, make sure you have a recent compiler that supports OpenMP par
 
 To install the package in R, which run the following lines
 
+``` r
 if (!require(devtools)) install.packages("devtools")
 require(devtools)
 install_github("fpechon/rfCountData")
-
+```
 

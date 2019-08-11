@@ -42,7 +42,7 @@ Partial dependence plot gives a graphical
  depiction of the marginal effect of a variable on the response variable.
 }
 \details{
-The function being plotted is defined as: $\tilde{f}(x) = 1/n* sum_{i=1}^n f(x, x_{iC})$,
+The function being plotted is defined as: $\hat{f}(x) = 1/n* sum_{i=1}^n f(x, x_{iC})$,
 where x is the variable for which partial dependence is sought, and x_{iC} is the other variables in the data.
 }
 \references{

@@ -50,13 +50,13 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   squared errors when the mth variable is randomly permuted.
   
   *************************************************************************/
-  double errts = 0.0, averrb, xrand, errb = 0.0,  ooberr, ooberrperm, delta;
+  double errts = 0.0, xrand, errb = 0.0,  ooberr, ooberrperm, delta;
   
   double *yb,*offsetb, *xtmp, *xb, *ytr, *ytree, *tgini;
   
   int k, m, mr, n, nOOB, j, jout, idx, ntest, last, ktmp, nPerm,
   nsample, mdim, keepF, keepInbag;
-  int *oobpair, varImp, *varUsed; 
+  int  varImp, *varUsed; 
   
   int *in, *nind, *nodex, *nodexts;
   
@@ -90,7 +90,6 @@ void regRF(double *x,double *offset, double *y, int *xdim, int *sampsize,
   "column" of errimp, otherwise it's just the same as errimp. */
   tgini = varImp ? errimp + mdim : errimp;
   
-  averrb = 0.0;
 
   
   zeroDouble(yptr, nsample);

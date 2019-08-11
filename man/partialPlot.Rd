@@ -35,9 +35,7 @@ main=paste("Partial Dependence on", deparse(substitute(x.var))),...)
 \item{..., }{other graphical parameters to be passed on to \code{plot} or \code{lines}.}
 }
 \value{
-A list with two components: \code{x} and \code{y}, which are the values used in the plot.
-\note The \code{rfCountData} object must contain the forest component; i.e., created with \code{rfPoisson(..., keep.forest=TRUE)}.\cr
-This function runs quite slow for large data sets.
+A list with two components: \code{x} and \code{y}, which are the values used in the plot. The \code{rfCountData} object must contain the forest component; i.e., created with \code{rfPoisson(..., keep.forest=TRUE)}. This function runs quite slow for large data sets.
 }
 \description{
 Partial dependence plot gives a graphical

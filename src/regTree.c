@@ -1,5 +1,4 @@
 /*******************************************************************
- /*******************************************************************
   Copyright (C) 2001-7 Leo Breiman, Adele Cutler and Merck & Co., Inc.
   
   This program is free software; you can redistribute it and/or
@@ -32,7 +31,7 @@ GNU General Public License for more details.
               double *upper, double *avnode, int *nodestatus, int nrnodes,
               int *treeSize, int nthsize, int mtry, int *mbest, int *cat,
               double *tgini, int *varUsed) {
-   int i, j, k, m, ncur, *jdex, *nodestart, *nodepop;
+   int i, j, k, ncur, *jdex, *nodestart, *nodepop;
    int ndstart, ndend, ndendl, jstat, msplit;
    double d, d_offset, ss, av, decsplit, ubest, sumnode, nodecnt;
    

@@ -20,9 +20,7 @@
 #' @param ..., other graphical parameters to be passed on to \code{plot} or \code{lines}.
 #' @details The function being plotted is defined as: $\tilde{f}(x) = 1/n* sum_{i=1}^n f(x, x_{iC})$,
 #' where x is the variable for which partial dependence is sought, and x_{iC} is the other variables in the data.
-#' @return A list with two components: \code{x} and \code{y}, which are the values used in the plot.
-#' \note The \code{rfCountData} object must contain the forest component; i.e., created with \code{rfPoisson(..., keep.forest=TRUE)}.\cr
-#' This function runs quite slow for large data sets.
+#' @return A list with two components: \code{x} and \code{y}, which are the values used in the plot. The \code{rfCountData} object must contain the forest component; i.e., created with \code{rfPoisson(..., keep.forest=TRUE)}. This function runs quite slow for large data sets.
 #' @author Andy Liaw \email{andy_liaw@merck.com}
 #' @references Friedman, J. (2001). Greedy function approximation: the gradient boosting machine, Ann. of Stat.
 #' @seealso \link{rfPoisson}
